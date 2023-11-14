@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/subway-game/static/css/main.831ee978.css",
-    "main.js": "/subway-game/static/js/main.58f1962f.js",
+    "main.js": "/subway-game/static/js/main.470e1c73.js",
     "static/media/mice.png": "/subway-game/static/media/mice.f8acd4b3e8a9ed61beab.png",
     "static/media/level3.png": "/subway-game/static/media/level3.82c300a648570d220aee.png",
     "static/media/level2.png": "/subway-game/static/media/level2.50c365b13f2ca019a8ff.png",
@@ -19,10 +19,10 @@
     "static/media/retry_btn.png": "/subway-game/static/media/retry_btn.5d06224c6e20738d779a.png",
     "index.html": "/subway-game/index.html",
     "main.831ee978.css.map": "/subway-game/static/css/main.831ee978.css.map",
-    "main.58f1962f.js.map": "/subway-game/static/js/main.58f1962f.js.map"
+    "main.470e1c73.js.map": "/subway-game/static/js/main.470e1c73.js.map"
   },
   "entrypoints": [
     "static/css/main.831ee978.css",
-    "static/js/main.58f1962f.js"
+    "static/js/main.470e1c73.js"
   ]
 }
