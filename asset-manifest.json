@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/subway-game/static/css/main.791aab0f.css",
-    "main.js": "/subway-game/static/js/main.0cf2a73e.js",
+    "main.js": "/subway-game/static/js/main.b867dbbf.js",
     "static/media/hard_level3.png": "/subway-game/static/media/hard_level3.e7e46683401149cdeaea.png",
     "static/media/hard_level1.png": "/subway-game/static/media/hard_level1.dbd44842b2ee651dd807.png",
     "static/media/mice.png": "/subway-game/static/media/mice.f8acd4b3e8a9ed61beab.png",
@@ -25,10 +25,10 @@
     "static/media/retry_btn.png": "/subway-game/static/media/retry_btn.5d06224c6e20738d779a.png",
     "index.html": "/subway-game/index.html",
     "main.791aab0f.css.map": "/subway-game/static/css/main.791aab0f.css.map",
-    "main.0cf2a73e.js.map": "/subway-game/static/js/main.0cf2a73e.js.map"
+    "main.b867dbbf.js.map": "/subway-game/static/js/main.b867dbbf.js.map"
   },
   "entrypoints": [
     "static/css/main.791aab0f.css",
-    "static/js/main.0cf2a73e.js"
+    "static/js/main.b867dbbf.js"
   ]
 }
