@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 // image
 import miceImg from '../img/mice.png';
+import miceImg2 from '../img/level3.png';
 import submitBtnImg from '../img/btn_submit.png';
 import clickImg from '../img/click.png';
 import correctImg from '../img/scoring1.png';
@@ -15,40 +16,21 @@ const Game = () => {
     let clickRef = useRef();
     let inputRef = useRef();
     
-    const [randomLine, setRandomLine] = useState(Math.floor(Math.random() * 4+1))// 랜덤 호선 1~4
     const [inputValue, setInputValue] = useState(''); // input 데이터 입력
     const [myAnswr, setMyAnswr] = useState([]);// 맞은 문제 배열
     const [quizResult, setQuizResult] = useState(null);// 정답, 오답, 중복 이미지 노출
     const [quizCount, setQuizCount] = useState(1);// 퀴즈 타이틀
-    const [timer, setTimer] = useState(10);// 타이머
+    const [timer, setTimer] = useState(10);// 기본 타이머 (10초)
+    const [nextStageTimer, setNextStageTimer] = useState(5);// nextStage 타이머 (5초)
     const [myScore, setMyScore] = useState(0);// 맞은 갯수(점수)
 
-    /*
-        1. 0~4중에 랜덤으로 숫자 노출 - 한 문제마다 랜덤 돌리기
-        2. api 맨 처음 한번만 가져오기. ex - {['01호선', '평택역']}
-            ㄴ 필요한 형태로 가져오기{{ LINE_NUM, STATION_NM }, [1, 평택], [1, 금정]}
-            ㄴ 서울역 예외처리-=98
-        3. input 입력 텍스트 받아오기
-            ㄴ입력한 값 useState에 넣고(inputValue) 특수문자, 영어, 숫자 입력 제한
-        4. input에 답안 입력 후 엔터키, 클릭 시 제출
-        5. 제출한 입력값이 api 요소의 호선(0번째 배열 요소값), 역 이름(1번째 배열 요소값)이 비교
-            ㄴ 맞으면 원본배열에서 삭제, 내 맞춘 답안 정답 배열 setCorrect에 넣기
-            ㄴ 같은 역이름을 가진 다른 호선 배열 값도 삭제(중복 체크), 내 맞춘 답안 정답 배열 setCorrect에 넣기
-            ㄴ 이미 정답 배열에 있는 값이라면 중복 이미지 노출 
-        6. 정답, 오답, 중복 이미지 노출
-            ㄴ 정답, 오답, 중복이면 다음 문제 노출
-            ㄴ 정답이면 quizCount++ (퀴즈 타이틀 숫자 + 1)
-            ㄴ 정답이면 myScore 점수 올리기 (한 문제당 + 10)
-        7. 최대 10문제 진행 quizCount++
-        8. 타이머기능 10초 -> 10초 지나면 게임 오버. (결과 페이지로)
-        9. 결과 값 params로 전달
-        10. 결과 페이지 노출
-
-        --------------------
-        10. 힌트 기능
-            ㄴ 지하철 노선도 이미지 노출 ?
-    */
-
+    //select -> game으로 호선 전달
+    const { params } = useParams();// Select 컴포넌트에서 선택한 호선 전달 값
+    const [selectedLines, setSelectedLines] = useState();// 전달 받은 호선 배열 형태로 저장. 2번 문제부터 사용
+    const [randomLine, setRandomLine] = useState();// 랜덤 호선 1~4 (selectedLines -> 저장)
+    // nextStage 전용 호선
+    const [nextStageLines, setNextStageLines] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    
     //Api
     const [loading, setLoading] = useState(true); // 데이터 로딩
     const [error, setError] = useState(null); // 데이터 로딩 중 오류
@@ -90,33 +72,108 @@ const Game = () => {
         console.log(stationData)
     }, []);
 
+    
+    // 여기서 값을 부여하고 2번 문제부터 랜덤 호선은 randomEvent(selectedLines) 함수 실행
     useEffect(() => {
-        console.log(stationData)
-        console.log('myAnswr',myAnswr);
-        console.log('quizResult', quizResult)
-        console.log('quizCount', quizCount)
-        console.log('myScore', myScore)
-        // 결과페이지 랜딩
-        if(quizCount > 10){
-            goResult();
+        if(params === 'nextStage'){// nextStage 랜덤 호출
+            setSelectedLines(nextStageLines)
+            const randomIndex = Math.floor(Math.random() * nextStageLines.length);
+            setRandomLine(parseInt(nextStageLines[randomIndex]));
+            console.log('nextStageLines', nextStageLines) // [1, 2, 3, 4, 5, 6 ,7, 8, 9]
+        }else if(params){
+            // select 컴포넌트에서 전달 받은 호선 정보 배열로 담기
+            const linesArray = params.split(',');
+            setSelectedLines(linesArray);
+            // console.log('selectedLines', linesArray); // [1, 2, 3, 4] 형태로 저장
+            const randomIndex = Math.floor(Math.random() * linesArray.length);
+            setRandomLine(parseInt(linesArray[randomIndex]));
         }
-    }, [stationData, myAnswr, quizResult, myScore, quizCount])
+    }, []);
+        
 
-    // 타이머 기능
+    // 랜덤 호선
+    const randomEvent = (lineArr) =>{
+        const randomIndex = Math.floor(Math.random() * lineArr.length);
+        setRandomLine(parseInt(lineArr[randomIndex]));
+    }
+
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            setTimer((prevTimer) => prevTimer - 1);
-        }, 1000);
+        // 타이머 기능
+        if(params === 'nextStage'){// nextStage 랜덤 호출
+            // 5초 타이머
+            const intervalId = setInterval(() => {
+                setNextStageTimer((prevTimer) => prevTimer - 1);
+            }, 1000);
 
-        return () => clearInterval(intervalId);
-    }) 
+            // 10문제 풀고 결과페이지 랜딩, input focus
+            if (quizCount > 10) {
+                goResult();
+            }
+            if (inputRef.current && quizCount >= 0) {
+                inputRef.current.focus();
+            }
+
+            // Clear 타이머
+            return () => clearInterval(intervalId);
+
+        }else{
+            // 10초 타이머
+            const intervalId = setInterval(() => {
+                setTimer((prevTimer) => prevTimer - 1);
+            }, 1000);
+
+            // 10문제 풀고 결과페이지 랜딩, input focus
+            if (quizCount > 10) {
+                goResult();
+            }
+            if (inputRef.current && quizCount >= 0) {
+                inputRef.current.focus();
+            }
+
+            // Clear 타이머
+            return () => clearInterval(intervalId);
+        }
+    }, [quizCount]);
+
+    // 새로고침 방지
+    const preventClose = (e) => {
+        e.preventDefault();  
+        e.returnValue = ""; 
+    }; 
+    useEffect(() => {  
+        (() => {
+            window.addEventListener("beforeunload", preventClose);  
+        })();   
+
+        return () => {    
+            window.removeEventListener("beforeunload", preventClose);  
+    };}, []);
+
+    // 모바일 웹 스크롤 수정
+    useEffect(() => {
+        const handleResize = () => {
+          let vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+    
+        // 초기 로드 시 실행
+        handleResize();
+    
+        // 리사이즈 이벤트에 대한 이벤트 리스너 추가
+        window.addEventListener('resize', handleResize);
+    
+        // 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+        return () => {
+          window.removeEventListener('resize', handleResize);
+        };
+      }, []);
 
     if (loading) {
-        return <div className='loading'>Loading...</div>;
+        return <div className='loading'><strong>Loading...</strong></div>;
     }
     
     if (error) {
-    return <div className='loading'>Error: {error.message}</div>;
+    return <div className='error'>Error: {error.message}</div>;
     }
 
     // 정답 입력
@@ -173,8 +230,6 @@ const Game = () => {
             // 입력값이 비어있을 때 동작하지 않도록 처리
             return;
         }
-
-        console.log('내가 입력한 답안:', inputValue);
     
         // 호선, 역 이름이 모두 일치하는 배열의 index 찾기
         const foundIndex = stationData.findIndex(item => item[0] === randomLine && item[1] === inputValue);
@@ -213,8 +268,6 @@ const Game = () => {
             console.log('일치하는 항목의 랜덤호선:', randomLine);
 
         } else { // 오답일 경우
-
-            // 오답 이미지 노출
             setQuizResult('wrong');
             quizResultEvent();
             setTimeout(() => { // 오답 이미지 노출 초기화
@@ -227,17 +280,21 @@ const Game = () => {
         setInputValue(''); // input 초기화
 
         setTimeout(() => {
-            setRandomLine(Math.floor(Math.random() * 4+1));// 랜덤 호선 새로 돌리기 (다음 문제 시작)
+            randomEvent(selectedLines);// 랜덤 호선 새로 돌리기 (다음 문제 시작)
             setQuizCount((prevCount) => prevCount + 1);// 다음 문제로 넘어가기 ++1
-            setTimer(10);//타이머 초기화
-            console.log('내가 맞춘 문제 갯수', quizCount)
+            if(params === 'nextStage'){
+                console.log('타이머 nextStage 되나 ?')
+                setNextStageTimer(5);//타이머 초기화
+            }else if(params){
+                setTimer(10);//타이머 초기화 
+            }
         }, 1050);
     }
 
     // 정답 제출 - 엔터키
     const handleKeyUp = (event) => {
         if (event.key === 'Enter') {
-            event.preventDefault();// 기본 동작(페이지 새로고침) 방지
+            event.preventDefault();
             answerCheck();
         };
     };
@@ -277,22 +334,36 @@ const Game = () => {
     
     // 타이머
     const timerEvent = () => {
-        if(3 < timer && timer <= 10){
-            return <img className="timer" src={`${process.env.PUBLIC_URL}/images/timer_${timer}s.png`} alt={`타이머`} />;
-        }else if(0 <= timer && timer <= 3){
-            return <img className="timer on" src={`${process.env.PUBLIC_URL}/images/timer_${timer}s.png`} alt={`타이머`} />;
+        if(params === 'nextStage'){
+            if(3 < nextStageTimer && nextStageTimer <= 5){
+                return <img className="timer" src={`${process.env.PUBLIC_URL}/images/timer_${nextStageTimer}s.png`} alt={`타이머`} />;
+            }else if(0 <= nextStageTimer && nextStageTimer <= 3){
+                return <img className="timer on" src={`${process.env.PUBLIC_URL}/images/timer_${nextStageTimer}s.png`} alt={`타이머`} />;
+            }else{
+                goResult();//게임오버 ~ 결과페이지로 <-  수정해야하는 영역
+            }
         }else{
-            goResult();//게임오버 ~ 결과페이지로
+            if((3 < timer && timer <= 10)){
+                return <img className="timer" src={`${process.env.PUBLIC_URL}/images/timer_${timer}s.png`} alt={`타이머`} />;
+            }else if((0 <= timer && timer <= 3)){
+                return <img className="timer on" src={`${process.env.PUBLIC_URL}/images/timer_${timer}s.png`} alt={`타이머`} />;
+            }else{
+                goResult();//게임오버 ~ 결과페이지로
+            }
         }
     }    
 
     // 결과 페이지로 이동
     const goResult = () => {
-        navigate(`/result/${myScore}`);
+        if(params === 'nextStage'){
+            navigate(`/result/${params}/${myScore}`);
+        }else{
+            navigate(`/result/${myScore}`);
+        }
     }
 
     return (
-        <div className="wrap">
+        <>
             <div className="quiz_area">
                 <strong className='quiz_count'>문제 {quizCount}</strong>
                 <div className={`quiz line${randomLine}`}>
@@ -319,14 +390,18 @@ const Game = () => {
                             <img src={submitBtnImg} alt="정답 제출하기"/>
                         </button>
                     </form>
-                    <img className='mice' src={miceImg} alt="쥐"/>
+                    {params === 'nextStage' ? (
+                        <img className='mice' src={miceImg2} alt="서울쥐"/>
+                    ) : (
+                        <img className='mice' src={miceImg} alt="시골쥐"/>
+                    )}
                 </div>
                 {/* 정답, 오답, 중복 이미지 */}
                 {quizResultEvent()}
                 {/* 타이머 이미지 */}
                 {timerEvent()}
             </div>
-        </div>
+        </>
     );
 };
 
